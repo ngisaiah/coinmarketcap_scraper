@@ -9,51 +9,46 @@ const scrape = async () => {
     const page = await browser.newPage()
     
     // Variables for iterating through multiple pages
-    const allBooks = []
+    const allCoins = []
     let currentPage = 1
-    const maxPages = 10
+    const maxPages = 5
 
     while(currentPage <= maxPages) {
         // url we are scraping
-        const url = `https://books.toscrape.com/catalogue/page-${currentPage}.html`
+        const url = `https://coinmarketcap.com/?page=${currentPage}`
         // uses pages obj to interact with new window
         await page.goto(url)
         // allows us to run javascript in context of the page
-        const books = await page.evaluate(() => {
-            // Selects product class (All books)
-            const bookElements = document.querySelectorAll('.product_pod')
+        const coins = await page.evaluate(() => {
+            // Selects product class (All coins)
+            //const coinElements = document.querySelectorAll('*[style="cursor:pointer"]')
+
+            const coinElements = document.querySelectorAll('tr[style="cursor: pointer;"]')
+
             // Puts product objects into an array
-            return Array.from(bookElements).map(book => {
-            // Creates new array with data were looking for (titles, price, availability, rating & link)
-                const title = book.querySelector('h3 a').getAttribute('title')
-                const price = book.querySelector('.price_color').textContent
-                const stock = book.querySelector('.instock.availability') 
-                    ? 'in stock' 
-                    : 'out of stock'
-                const rating = book.querySelector('.star-rating').className.split(' ')[1]
-                const link = book.querySelector('h3 a').getAttribute('href')
-            // returns object with all the data
-                return {
-                    title,
-                    price,
-                    stock,
-                    rating,
-                    link
-                }
+            return Array.from(coinElements).map(coin => {
+                // Creates new array with data were looking for (name, price, marketCap, volume)
+                const name = coin.querySelector("p.coin-item-name").textContent
+                // const price = coin.querySelector('table > tbody > tr > td > div > span').textContent
+                // const marketCap = coin.querySelector('span.sc-11478e5d-0.chpohi').textContent 
+                // const volume = coin.querySelector('table > tbody > tr > td > div > a > p').textContent
+                // returns object with all the data
+                return {name}
             })
 
         })
-        // Pushes objects(books) into an array
-        allBooks.push(...books)
-        console.log(`Books on page ${currentPage}: `, books)
+
+        // Pushes objects(coins) into an array
+        //allCoins.push(...coins)
+        console.log(`Coins on page ${currentPage}: `, coins)
         // Increments currentPage until it equals max page
         currentPage++
     }
 
-    // saves data to books.json
-    fs.writeFileSync('books.json', JSON.stringify(allBooks, null, 2))
+    // saves data to coins.json
+    //fs.writeFileSync('coins.json', JSON.stringify(allCoins, null, 2))
 
-    console.log('Data saved to books.json')
+    //console.log('Data saved to coins.json')
 
     // close browser when done
     await browser.close();
